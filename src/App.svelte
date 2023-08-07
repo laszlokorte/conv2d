@@ -105,10 +105,10 @@
 
 		if(ex) {
 			filter = {
-				...filter,
-				...ex.filter,
+				...JSON.parse(JSON.stringify(filter)),
+				...JSON.parse(JSON.stringify(ex.filter)),
 			}
-			inputImage = imageExamples[ex.input]
+			inputImage = JSON.parse(JSON.stringify(imageExamples[ex.input]))
 			filterRange = ex.range 
 			focus = null
 		}

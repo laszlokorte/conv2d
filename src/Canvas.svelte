@@ -25,7 +25,7 @@
 		if(ex) {
 			image = {
 				size: {x:ex.size.x,y:ex.size.y},
-				values: ex.values.map((r) => r.map((v) => v))
+				values: JSON.parse(JSON.stringify(ex.values))
 			}
 			range = ex.range || 0
 		}
