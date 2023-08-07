@@ -14,6 +14,7 @@
 		current:{x:null,y:null},
 	}
 
+	let clipOutput = false
 	let focus = null
 
 	function focusInput(evt) {
@@ -319,6 +320,7 @@
 	}
 
 	$: filterNorm = Math.abs(filter.kernel.values.flat().reduce((a,b)=>a+b, 0)) || 1
+	$: filterFlipped = filter.kernel.values.toReversed().map(r=>r.toReversed())
 
 	$: filteredImage = {
 		size: {
@@ -587,7 +589,16 @@
 		{/if}
 
 		{#if (focus && focus.type == 'output')}
-		<rect pointer-events="none" fill-opacity="0.7" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x} y={focus.y} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		<rect pointer-events="none" fill-opacity="0.2" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x} y={focus.y} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+
+		<svg pointer-events="none" x={focus.x} y={focus.y} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke">
+			{#each (filter.flip?filterFlipped:filter.kernel.values) as row, y}
+			{#each row as value, x}
+				<rect fill="hsla(300deg 100% {(value-filterRange)/((1-filterRange)||1)*50}%)" fill-opacity="0.5" image-rendering="crisp-edges" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			{/each}
+		{/each}
+		</svg>
+
 		{/if}
 			<rect pointer-events="none" stroke="cyan" fill="none" x={filter.padding.left} y={filter.padding.top} width={inputImage.size.x} height={inputImage.size.y} vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		</svg>
@@ -632,7 +643,7 @@
 		<svg style:flx-shrink="0" role="presentation" class="image-array no-cursor" viewBox="0 0 {filteredImage.size.x} {filteredImage.size.y}" width="{filteredImage.size.x}" height="{filteredImage.size.y}" preserveAspectRatio="meet xMidYMid">
 	{#each filteredImage.values as row, y}
 		{#each row as value, x}
-			<rect on:click={focusOutput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			<rect on:click={focusOutput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={!clipOutput?(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1):Math.max(0,Math.min(1, value))} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		{/each}
 	{/each}
 		{#if (focus && focus.type == 'output')}
@@ -640,13 +651,22 @@
 		{/if}
 		{#if (focus && focus.type == 'input')}
 		<rect pointer-events="none" fill-opacity="0.7" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x-filter.kernel.size.x+1} y={focus.y-filter.kernel.size.y+1} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		<svg image-rendering="crisp-edges" pointer-events="none" x={focus.x-filter.kernel.size.x+1} y={focus.y-filter.kernel.size.y+1} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke">
+			{#each (!filter.flip?filterFlipped:filter.kernel.values) as row, y}
+			{#each row as value, x}
+				<rect fill="hsla(300deg 100% {(value-filterRange)/((1-filterRange)||1)*50}%)" fill-opacity="0.5" image-rendering="crisp-edges" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			{/each}
+		{/each}
+		</svg>
+
 		{/if}
 	</svg>
 	<div class="legend">
-		<span class="legend-label">{numberFormatter.format(filteredImageMax)}</span>
-		<span class="legend-label">{numberFormatter.format(filteredImageMin)}</span>
+		<span class="legend-label">{numberFormatter.format(!clipOutput?filteredImageMax:Math.max(0,Math.min(1, filteredImageMax)))}</span>
+		<span class="legend-label">{numberFormatter.format(!clipOutput?filteredImageMin:Math.max(0,Math.min(1, filteredImageMin)))}</span>
 	</div>
 	</div>
+	<label><input type="checkbox" bind:checked={clipOutput} /> Clip output to range 0.0 to 1.0</label>
 </div>
 	</div>
 </div>
