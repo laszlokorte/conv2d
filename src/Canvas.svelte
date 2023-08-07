@@ -6,11 +6,27 @@
 
 	let config = false
 
+	export let maxSize = 50
+
+	export let examples = {}
+
 	function toggleConfig() {
 		selectedRange = range
 		widthInput.value = image.size.x
 		heightInput.value = image.size.y
 		config = !config
+	}
+
+	function loadExample(name) {
+		const ex = examples[name]
+
+		if(ex) {
+			image = {
+				size: {x:ex.size.x,y:ex.size.y},
+				values: ex.values.map((r) => r.map((v) => v))
+			}
+			range = ex.range || 0
+		}
 	}
 
 	export let range = 0
@@ -276,9 +292,9 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 <legend class="option-container-label">Dimensions</legend>
 <dl class="options">
 <dt>Width</dt>
-<dd><input type="number" size="5" min="3" max="50" step="1" value={image.size.x} bind:this={widthInput}/></dd>
+<dd><input type="number" size="5" min="3" max={maxSize} step="1" value={image.size.x} bind:this={widthInput}/></dd>
 <dt>Height</dt>
-<dd><input type="number" size="5" min="3" max="50" step="1" value={image.size.y} bind:this={heightInput}/></dd>
+<dd><input type="number" size="5" min="3" max={maxSize} step="1" value={image.size.y} bind:this={heightInput}/></dd>
 <dt>Value Range</dt>
 <dd>
 	<ul>
@@ -309,7 +325,12 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	<button class="small-button" on:click={clearColor}>Clear</button>
 <button class="small-button" on:click={toggleConfig}>Resize</button>
 </div>
-
+<strong>Examples</strong>
+<div class="row" style:max-width="15em" style:align-self="center" style:justify-content="center" style:flex-wrap="wrap">
+{#each Object.keys(examples) as ex}
+	<button class="small-button" on:click={() => loadExample(ex)}>{ex}</button>
+{/each}
 </div>
 
+</div>
 </section>
