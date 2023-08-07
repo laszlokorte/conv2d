@@ -1,7 +1,9 @@
 <script>
 	import Canvas from './Canvas.svelte'
 
+	let numberFormatter = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero', trailingZeroDisplay: 'auto' })
 
+	let brushSticky = false
 	let brush = {
 		active: false,
 		value: 1,
@@ -10,6 +12,105 @@
 		element: null,
 		prev:{x:null,y:null},
 		current:{x:null,y:null},
+	}
+
+	let focus = null
+
+	function focusInput(evt) {
+		const newFocus = {
+			type: 'input',
+			x: 1*evt.currentTarget.getAttribute('data-x'),
+			y: 1*evt.currentTarget.getAttribute('data-y'),
+		}
+
+		if(focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
+			focus = null
+		} else {
+			focus = newFocus
+		}
+	}
+
+	function focusOutput(evt) {
+		const newFocus = {
+			type: 'output',
+			x: 1*evt.currentTarget.getAttribute('data-x'),
+			y: 1*evt.currentTarget.getAttribute('data-y'),
+		}
+
+		if(focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
+			focus = null
+		} else {
+			focus = newFocus
+		}
+	}
+
+	function mod(a,b) {
+		return ((a%b)+ b)%b
+	}
+
+	const fullExamples = {
+		"Box Blur": {
+			filter: {
+				flip: false,
+				function: 'identity',
+				normalize: true,
+				padding: {left: 2,right:2,top:2,bottom:2},
+				kernel: {size: {x:5,y:5}, values: [[0,0,0,0,0],[0,1,1,1,0],[0,1,1,1,0],[0,1,1,1,0],[0,0,0,0,0]]},
+				paddingType: 'zero',
+			},
+			input: 'Blobs',
+			range: 0,
+		},
+		"Vertical Edges": {
+			filter: {
+				flip: false,
+				function: 'identity',
+				normalize: true,
+				padding: {left: 2,right:2,top:2,bottom:2},
+				kernel: {size: {x:5,y:5}, values: [[0,0,0,0,0],[0,-1,-1,-1,0],[0,0,0,0,0],[0,1,1,1,0],[0,0,0,0,0]]},
+				paddingType: 'zero',
+			},
+			input: 'Blobs',
+			range: -1,
+		},
+		erosion: {
+			filter: {
+				flip: false,
+				function: 'floor',
+				normalize: true,
+				padding: {left: 2,right:2,top:2,bottom:2},
+				kernel: {size: {x:5,y:5}, values: [[0,0,0,0,0],[0,1,1,1,0],[0,1,1,1,0],[0,1,1,1,0],[0,0,0,0,0]]},
+				paddingType: 'zero',
+			},
+			input: 'Letter H',
+			range: 0,
+		},
+		dilation: {
+			filter: {
+				flip: true,
+				function: 'ceil',
+				normalize: true,
+				padding: {left: 2,right:2,top:2,bottom:2},
+				kernel: {size: {x:5,y:5}, values: [[0,0,0,0,0],[0,1,1,1,0],[0,1,1,1,0],[0,1,1,1,0],[0,0,0,0,0]],},
+				paddingType: 'zero',
+			},
+			input: 'Letter H',
+			range: 0,
+		}
+	}
+
+	function loadExample(name) {
+		let ex = fullExamples[name]
+
+		if(ex) {
+			filter = {
+				...filter,
+				...ex.filter,
+			}
+			inputImage = imageExamples[ex.input]
+			filterRange = ex.range 
+			focus = null
+		}
 	}
 
 	let imageExamples = {
@@ -114,6 +215,15 @@
 					[0,0,1,0,0],
 					[0,0,0,0,0],]
 		},
+
+		"3x3Diamond": {
+			size:{x:5,y:5},
+			values:[[0,0,1,0,0],
+					[0,1,1,1,0],
+					[1,1,1,1,1],
+					[0,1,1,1,0],
+					[0,0,1,0,0],]
+		},
 	}
 
 	let inputImage = {
@@ -121,14 +231,15 @@
 		values: Array(20).fill(0).map(v=>Array(20).fill(v)),
 	};
 
-	let inputRange;
+	let inputRange, filterRange;
 
 	let filter = {
 		padding: {left: 0,right:0,top:0,bottom:0},
-		mask: {size: {x:5,y:5}, values: Array(5).fill(0).map(v=>Array(5).fill(v)),},
+		kernel: {size: {x:5,y:5}, values: Array(5).fill(0).map(v=>Array(5).fill(v)),},
 		paddingType: 'zero',
 		function: 'identity',
 		flip: true,
+		normalize: true,
 	};
 
 	const paddingTypes = {
@@ -154,14 +265,14 @@
 			const modY = (original.size.y)*2
 			const modX = (original.size.x)*2
 
-			const doubleY = ((y % modY)+modY)%modY
-			const doubleX = ((x % modX)+modX)%modX
+			const doubleY = mod(y, modY)
+			const doubleX = mod(x,modY)
 
 			const yover = (doubleY/original.size.y)<<0
 			const xover = (doubleX/original.size.x)<<0
 
-			y = ((original.size.y-yover+(yover?-1:1)*y)%original.size.y+original.size.y)%original.size.y
-			x = ((original.size.x-xover+(xover?-1:1)*x)%original.size.x+original.size.x)%original.size.x
+			y = mod(original.size.y-yover+(yover?-1:1)*y, original.size.y)
+			x = mod(original.size.x-xover+(xover?-1:1)*x, original.size.x)
 			
 			return original.values[y][x]
 		},
@@ -169,8 +280,8 @@
 			const modY = (original.size.y)*2
 			const modX = (original.size.x)*2
 
-			const doubleY = ((y % modY)+modY)%modY
-			const doubleX = ((x % modX)+modX)%modX
+			const doubleY = mod(y, modY)
+			const doubleX = mod(x, modX)
 
 			const yover = (doubleY/original.size.y)<<0
 			const xover = (doubleX/original.size.x)<<0
@@ -181,8 +292,8 @@
 			return original.values[y][x]
 		},
 		cyclic: (original, x, y) => {
-			x = (x%original.size.x + original.size.x)%original.size.x
-			y = (y%original.size.y + original.size.y)%original.size.y
+			x = mod(x,original.size.x)
+			y = mod(y,original.size.y)
 			
 			return original.values[y][x]
 		},
@@ -207,16 +318,18 @@
 			)
 	}
 
-	$: filterNorm = Math.abs(filter.mask.values.flat().reduce((a,b)=>a+b, 0)) || 1
+	$: filterNorm = Math.abs(filter.kernel.values.flat().reduce((a,b)=>a+b, 0)) || 1
 
 	$: filteredImage = {
 		size: {
-			x: paddedImage.size.x - filter.mask.size.x + 1,
-			y: paddedImage.size.y - filter.mask.size.y + 1,
+			x: Math.max(0, Math.abs(paddedImage.size.x - filter.kernel.size.x) + 1),
+			y: Math.max(0, Math.abs(paddedImage.size.y - filter.kernel.size.y) + 1),
 		},
-		values: Array(Math.max(0, paddedImage.size.y - filter.mask.size.y + 1)).fill(0).map((v,y) => 
-			Array(Math.max(0, paddedImage.size.x - filter.mask.size.x + 1)).fill(0).map((_,x) => 
-				functions[filter.function](filter.mask.values.flatMap((row, fy) => row.map((w, fx) => paddedImage.values[y+(filter.flip?(filter.mask.size.y-fy-1):fy)][x+(filter.flip?(filter.mask.size.x-fx-1):fx)]*w)).reduce((a,b)=>a+b, 0)/filterNorm)
+		values: Array(Math.max(0, Math.abs(paddedImage.size.y - filter.kernel.size.y) + 1)).fill(0).map((v,y) => 
+			Array(Math.max(0, Math.abs(paddedImage.size.x - filter.kernel.size.x) + 1)).fill(0).map((_,x) => 
+				functions[filter.function](filter.kernel.values.flatMap((row, fy) => row.map((w, fx) => paddedImage.values[mod(y+fy, paddedImage.size.y)][mod(x+fx, paddedImage.size.x)]*
+					filter.kernel.values[mod((filter.flip?-1:1)*fy+(filter.flip?-1:0), filter.kernel.size.y)][mod((filter.flip?-1:1)*fx+(filter.flip?-1:0), filter.kernel.size.x)]
+					)).reduce((a,b)=>a+b, 0)/(filter.normalize?filterNorm:1))
 			)
 		)
 	}
@@ -235,7 +348,7 @@
 		display: grid;
 		grid-template-columns: auto 3em auto;
 		justify-content: start;
-		gap: 1em;
+		gap: 0.2em 1em;
 	}
 	.options-list {
 		display: grid;
@@ -255,9 +368,11 @@
 	}
 
 	.option-container-label {
-		display: inline-block;
+		display: flex;
+		gap: 0.2em;
 		padding: 2px 0.5em;
 		background: inherit;
+		white-space: nowrap;
 	}
 
 	dd, dt, dl {
@@ -313,6 +428,14 @@
 
 	.brush {
 		margin: 1em auto;
+		padding: 1em;
+	}
+
+	.brush.sticky {
+		position: sticky;
+		top: 0;
+		background: #fffa;
+
 	}
 	
 	.image-array {
@@ -322,6 +445,7 @@
 		min-width: 20em;
 		height: auto;
 		border: 1px solid white;
+		display: block;
 	}
 
 	.filter-chain {
@@ -346,16 +470,60 @@
 		font-size: 1.2em;
 		margin-bottom: 0.5em;
 	}
+
+	.legend {
+		width: 100%;
+		height: 100%;
+		border: 1px solid currentColor;
+		box-sizing: border-box;
+		background-image: linear-gradient(0deg, black 0%, white 100%);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		font-weight: bold;
+		font-size: 0.8em;
+	}
+
+	.legend > :first-child {
+		color: black;
+	}
+	.legend > :last-child {
+		color: white;
+	}
+
+	.figure-with-legend {
+		display: grid;
+		grid-template-columns: auto 2em;
+		gap: 0.5em;
+	}
+
+	.small-button {
+		color: inherit;
+		font: inherit;
+		background: none;
+		border: none;
+		text-decoration: underline;
+		cursor: pointer;
+	}
 </style>
 
 <div class="container">
+
+		<div style:margin="auto">
+			<strong>Examples</strong>
+			<button class="small-button" on:click={() => loadExample('Box Blur')}>Box Blur</button>
+			<button class="small-button" on:click={() => loadExample('Vertical Edges')}>Vertical Edges</button>
+			<button class="small-button" on:click={() => loadExample('erosion')}>Erosion</button>
+			<button class="small-button" on:click={() => loadExample('dilation')}>Dilation</button>
+		</div>
 	
-<section class="brush">
+<section class="brush" class:sticky={brushSticky}>
 	<fieldset class="option-container">
-	<legend class="option-container-label">Brush</legend>
+	<legend class="option-container-label">Brush / <label><input type="checkbox" bind:checked={brushSticky}> Pinned</label></legend>
 	<dl class="options">
-	<dt>Brightness </dt>
-	<dd>	<svg style="border:1px solid black" viewBox="0 0 10 10" width={10} height={10}><rect x="0" y="0" width="10" height="10" style:--intensity={brush.value} fill="magenta" class="intensity" /></svg>
+	<dt>Intensity </dt>
+	<dd>	<svg style:cursor="pointer" style="border:1px solid black" viewBox="0 0 10 10" width={20} height={20}><rect x="0" y="0" width="10" height="10" style:--intensity={brush.value} on:click={() => {brush.value = 1-brush.value}} fill="magenta" class="intensity" /></svg>
 </dd>
 	<dd><input style:--intensity={brush.value} class="intensity" type="range" min="0" max="1" step="0.05" bind:value={brush.value}/></dd>
 	<dt>Size</dt>
@@ -411,10 +579,17 @@
 		<svg role="presentation" class="image-array no-cursor" viewBox="0 0 {paddedImage.size.x} {paddedImage.size.y}" width="{paddedImage.size.x}" height="{paddedImage.size.y}" preserveAspectRatio="meet xMidYMid">
 		{#each paddedImage.values as row, y}
 			{#each row as value, x}
-				<rect pointer-events="none" class="intensity" style:--intensity={(value-inputRange)/(1-inputRange)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+				<rect on:click={focusInput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={(value-inputRange)/(1-inputRange)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 			{/each}
 		{/each}
-			<rect stroke="cyan" fill="none" x={filter.padding.left} y={filter.padding.top} width={inputImage.size.x} height={inputImage.size.y} vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		{#if (focus && focus.type == 'input')}
+		<rect pointer-events="none" fill="magenta" fill-opacity="0.7" image-rendering="crisp-edges" stroke="magenta" x={focus.x} y={focus.y} width="1" height="1"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		{/if}
+
+		{#if (focus && focus.type == 'output')}
+		<rect pointer-events="none" fill-opacity="0.7" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x} y={focus.y} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		{/if}
+			<rect pointer-events="none" stroke="cyan" fill="none" x={filter.padding.left} y={filter.padding.top} width={inputImage.size.x} height={inputImage.size.y} vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		</svg>
 	</div>
 
@@ -442,20 +617,36 @@
 					{/each}
 				</select>
 			</dd>
+			<dt>Normalize</dt>
+			<dd>
+				<input type="checkbox" bind:checked={filter.normalize} />
+			</dd>
 		</dl>
 	</fieldset>
 	<h2>Kernel</h2>
-	<Canvas maxSize={10} examples={kernelExamples} bind:image={filter.mask} brush={brush} />
+	<Canvas  bind:range={filterRange} maxSize={10} examples={kernelExamples} bind:image={filter.kernel} brush={brush} />
 </div>
 <div class="image-container">
 		<h2>Filtered Image</h2>
-	<svg style:flx-shrink="0" role="presentation" class="image-array no-cursor" viewBox="0 0 {filteredImage.size.x} {filteredImage.size.y}" width="{filteredImage.size.x}" height="{filteredImage.size.y}" preserveAspectRatio="meet xMidYMid">
+	<div class="figure-with-legend">
+		<svg style:flx-shrink="0" role="presentation" class="image-array no-cursor" viewBox="0 0 {filteredImage.size.x} {filteredImage.size.y}" width="{filteredImage.size.x}" height="{filteredImage.size.y}" preserveAspectRatio="meet xMidYMid">
 	{#each filteredImage.values as row, y}
 		{#each row as value, x}
-			<rect pointer-events="none" class="intensity" style:--intensity={(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			<rect on:click={focusOutput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		{/each}
 	{/each}
+		{#if (focus && focus.type == 'output')}
+		<rect pointer-events="none" fill-opacity="0.7" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x} y={focus.y} width="1" height="1"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		{/if}
+		{#if (focus && focus.type == 'input')}
+		<rect pointer-events="none" fill-opacity="0.7" fill="magenta" image-rendering="crisp-edges" stroke="magenta" x={focus.x-filter.kernel.size.x+1} y={focus.y-filter.kernel.size.y+1} width="{filter.kernel.size.x}" height="{filter.kernel.size.y}"  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		{/if}
 	</svg>
+	<div class="legend">
+		<span class="legend-label">{numberFormatter.format(filteredImageMax)}</span>
+		<span class="legend-label">{numberFormatter.format(filteredImageMin)}</span>
+	</div>
+	</div>
 </div>
 	</div>
 </div>

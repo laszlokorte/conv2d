@@ -4,6 +4,8 @@
 		values: Array(16).fill(0).map((v) => Array(16).fill(v))
 	};
 
+	let numberFormatter = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero', trailingZeroDisplay: 'auto' })
+
 	let config = false
 
 	export let maxSize = 50
@@ -145,7 +147,7 @@
 				const yy = Math.floor(y+ry);
 				let distance2 = (rx*rx + ry*ry);
 				if(yy < image.size.y && yy >= 0 && xx < image.size.x && xx >= 0 && radius2 > distance2) {
-					const alpha = 1- smoothstep(distance2, (radius2*Math.pow(brush.hardness,16)), radius2)
+					const alpha = 1- smoothstep(distance2, (radius2*Math.pow(brush.hardness,64)), radius2)
 					image.values[yy][xx] = image.values[yy][xx] * (1-alpha) + alpha*value
 				}
 			}
@@ -281,6 +283,33 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 		align-self: stretch;
 		justify-content: space-around;
 	}
+
+	.legend {
+		width: 100%;
+		height: 100%;
+		border: 1px solid currentColor;
+		box-sizing: border-box;
+		background-image: linear-gradient(0deg, black 0%, white 100%);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		font-weight: bold;
+		font-size: 0.8em;
+	}
+
+	.legend > :first-child {
+		color: black;
+	}
+	.legend > :last-child {
+		color: white;
+	}
+
+	.figure-with-legend {
+		display: grid;
+		grid-template-columns: auto 2em;
+		gap: 0.5em;
+	}
 </style>
 
 <svelte:document on:mouseup={() => stopDrawing()} on:mousemove={(evt) => moveDrawing(evt)} />
@@ -311,7 +340,7 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 </div>
 
 <div class="vstack">
-	
+	<div class="figure-with-legend">
 <svg bind:this={element} class:active={active} role="presentation" on:mousedown={(evt) => startDrawing(evt)} class="image-array no-cursor" viewBox="0 0 {image.size.x} {image.size.y}" width="{image.size.x}" height="{image.size.y}" preserveAspectRatio="meet xMidYMid">
 	{#each image.values as row, y}
 		{#each row as value, x}
@@ -321,6 +350,11 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	<circle vector-effect="non-scaling-stroke" r={brush.size/2} cx={current.x} cy={current.y} fill="#fffa" stroke="#0005" stroke-width="1px" />
 	<circle vector-effect="non-scaling-stroke" r={brush.size/2*brush.hardness} cx={current.x} cy={current.y} fill="#fffa" />
 </svg>
+	<div class="legend">
+		<span class="legend-label">{numberFormatter.format(max)}</span>
+		<span class="legend-label">{numberFormatter.format(min)}</span>
+	</div>
+</div>
 <div class="row">
 	<button class="small-button" on:click={clearColor}>Clear</button>
 <button class="small-button" on:click={toggleConfig}>Resize</button>
