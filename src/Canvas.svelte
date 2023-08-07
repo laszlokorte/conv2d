@@ -4,6 +4,15 @@
 		values: Array(16).fill(0).map((v) => Array(16).fill(v))
 	};
 
+	let config = false
+
+	function toggleConfig() {
+		selectedRange = range
+		widthInput.value = image.size.x
+		heightInput.value = image.size.y
+		config = !config
+	}
+
 	export let range = 0
 	let selectedRange = range
 
@@ -47,9 +56,15 @@
 	}
 
 	function clear() {
+		config = false
 		image.size.x = widthInput.valueAsNumber<<0
 		image.size.y = heightInput.valueAsNumber<<0
 		range = selectedRange
+		image.values = Array(image.size.y).fill(null).map(() => Array(image.size.x).fill(0))
+	}
+
+	function clearColor() {
+		config = false
 		image.values = Array(image.size.y).fill(null).map(() => Array(image.size.x).fill(0))
 	}
 
@@ -140,9 +155,11 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	.image-array {
 		max-width: 18em;
 		max-height: 24em;
+		min-width: 19em;
 		width: 100%;
 		height: auto;
 		border: 1px solid white;
+		display: block;
 	}
 
 	.no-cursor {
@@ -158,6 +175,16 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 		display: grid;
 		grid-template-columns: auto auto;
 		gap: 0.5em 1em;
+	}
+
+	.options-overlay {
+			z-index: 100;
+			padding: 1em;
+			background: #000d;
+	}
+
+	.options-overlay.hidden {
+		visibility: hidden;
 	}
 
    .option-container {
@@ -178,13 +205,18 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	}
 
 	.container {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: max-content;
 		gap: 0.4em;
-		align-items: center;
-		align-content: center;
+		align-items: stretch;
+		align-content: stretch;
 		background: #111;
 		color: #fff;
+	}
+
+	.container > * {
+		grid-column: 1;
+		grid-row: 1;
 	}
 
 	dt {
@@ -212,13 +244,34 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 		margin: 0;
 		padding: 0;
 	}
+
+	.small-button {
+		color: inherit;
+		font: inherit;
+		background: none;
+		border: none;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.vstack {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.row {
+		display: flex;
+		align-self: stretch;
+		justify-content: space-around;
+	}
 </style>
 
 <svelte:document on:mouseup={() => stopDrawing()} on:mousemove={(evt) => moveDrawing(evt)} />
 
 <section class="container">
 
-
+<div class:hidden={!config} class="options-overlay">
 <fieldset class="option-container">
 <legend class="option-container-label">Dimensions</legend>
 <dl class="options">
@@ -234,10 +287,15 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 </ul>
 </dd>
 <dt></dt>
-<dd><button on:click={clear}>Resize+Clear</button></dd>
+<dd><button on:click={clear}>Resize+Clear</button><br>
+<button class="small-button" on:click={toggleConfig}>Cancel</button>
+</dd>
 </dl>
 </fieldset>
+</div>
 
+<div class="vstack">
+	
 <svg bind:this={element} class:active={active} role="presentation" on:mousedown={(evt) => startDrawing(evt)} class="image-array no-cursor" viewBox="0 0 {image.size.x} {image.size.y}" width="{image.size.x}" height="{image.size.y}" preserveAspectRatio="meet xMidYMid">
 	{#each image.values as row, y}
 		{#each row as value, x}
@@ -247,6 +305,11 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	<circle vector-effect="non-scaling-stroke" r={brush.size/2} cx={current.x} cy={current.y} fill="#fffa" stroke="#0005" stroke-width="1px" />
 	<circle vector-effect="non-scaling-stroke" r={brush.size/2*brush.hardness} cx={current.x} cy={current.y} fill="#fffa" />
 </svg>
+<div class="row">
+	<button class="small-button" on:click={clearColor}>Clear</button>
+<button class="small-button" on:click={toggleConfig}>Resize</button>
+</div>
 
+</div>
 
 </section>

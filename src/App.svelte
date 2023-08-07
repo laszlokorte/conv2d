@@ -1,6 +1,6 @@
 <script>
 	import Canvas from './Canvas.svelte'
-	
+
 
 	let brush = {
 		active: false,
@@ -117,10 +117,8 @@
 		)
 	}
 
-	$: filteredImageMin = Math.min.apply(Math, filteredImage.values.flat())
-	$: filteredImageMax = Math.max.apply(Math, filteredImage.values.flat())
-	$: paddedImageMin = Math.min.apply(Math, paddedImage.values.flat())
-	$: paddedImageMax = Math.max.apply(Math, paddedImage.values.flat())
+	$: filteredImageMin = Math.min.call(Math, 0, ...filteredImage.values.flat())
+	$: filteredImageMax = Math.max.call(Math, 1, ...filteredImage.values.flat())
 </script>
 
 <style>
@@ -163,7 +161,7 @@
 		padding: 0;
 	}
 
-	dt {
+	dt, dd {
 		font-size: 0.8em;
 		align-self: center;
 	}
@@ -206,13 +204,11 @@
 
 	h2 {
 		margin: 0;
+		text-align: center;
 	}
 
 	.brush {
-		position: fixed;
-		top: 1em;
-		right: 1em;
-		margin-left: auto;
+		margin: 1em auto;
 	}
 	
 	.image-array {
@@ -224,8 +220,10 @@
 		border: 1px solid white;
 	}
 
-	.filter {
+	.filter-chain {
 		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
 		align-items: start;
 		gap: 1em;
 	}
@@ -242,6 +240,7 @@
 
 	h2 {
 		font-size: 1.2em;
+		margin-bottom: 0.5em;
 	}
 </style>
 
@@ -267,13 +266,15 @@
 </section>
 
 
+
+<div>	
+	<div class="filter-chain">
+
 <div class="image-container">
 	<h2>Input Image</h2>
 	<Canvas bind:range={inputRange} bind:image={inputImage} brush={brush} />
 </div>
 
-<div>	
-	<div class="filter">
 <div class="image-container">
 	<h2>Padding</h2>
 	<fieldset class="option-container">
@@ -283,7 +284,8 @@
 			<dd>
 				<select bind:value={filter.paddingType}>
 					{#each Object.keys(paddingTypes) as type}
-						<option>{type}</option>
+						<option value={type}>{type.charAt(0).toUpperCase()
+  + type.slice(1)}</option>
 					{/each}
 				</select>
 			</dd>
@@ -346,7 +348,7 @@
 	<svg style:flx-shrink="0" role="presentation" class="image-array no-cursor" viewBox="0 0 {filteredImage.size.x} {filteredImage.size.y}" width="{filteredImage.size.x}" height="{filteredImage.size.y}" preserveAspectRatio="meet xMidYMid">
 	{#each filteredImage.values as row, y}
 		{#each row as value, x}
-			<rect pointer-events="none" class="intensity" style:--intensity={(value-filteredImageMin)/(filteredImageMax-filteredImageMin)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			<rect pointer-events="none" class="intensity" style:--intensity={(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		{/each}
 	{/each}
 	</svg>
