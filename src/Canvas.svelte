@@ -245,7 +245,7 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 		align-self: center;
 	}
 
-	input, select, button {
+	input, button {
 		margin: 0;
 	}
 
