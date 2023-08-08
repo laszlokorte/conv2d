@@ -237,7 +237,7 @@
 
 	let filter = {
 		padding: {left: 0,right:0,top:0,bottom:0},
-		kernel: {size: {x:5,y:5}, values: Array(5).fill(0).map(v=>Array(5).fill(v)),},
+		kernel: {size: {x:5,y:5}, values: Array(5).fill(0).map((v,y)=>Array(5).fill(v).map((p,x) => x==2&&y==2?1:p)),},
 		paddingType: 'zero',
 		function: 'identity',
 		flip: true,
@@ -325,12 +325,14 @@
 
 	$: filteredImage = {
 		size: {
-			x: Math.max(0, Math.abs(paddedImage.size.x - filter.kernel.size.x) + 1),
-			y: Math.max(0, Math.abs(paddedImage.size.y - filter.kernel.size.y) + 1),
+			x: Math.max(0, (paddedImage.size.x - filter.kernel.size.x) + 1),
+			y: Math.max(0, (paddedImage.size.y - filter.kernel.size.y) + 1),
 		},
-		values: Array(Math.max(0, Math.abs(paddedImage.size.y - filter.kernel.size.y) + 1)).fill(0).map((v,y) => 
-			Array(Math.max(0, Math.abs(paddedImage.size.x - filter.kernel.size.x) + 1)).fill(0).map((_,x) => 
-				functions[filter.function](filter.kernel.values.flatMap((row, fy) => row.map((w, fx) => paddedImage.values[mod(y+fy, paddedImage.size.y)][mod(x+fx, paddedImage.size.x)]*
+		values: Array(Math.max(0, (paddedImage.size.y - filter.kernel.size.y) + 1)).fill(0).map((v,y) => 
+			Array(Math.max(0, (paddedImage.size.x - filter.kernel.size.x) + 1)).fill(0).map((_,x) => 
+				functions[filter.function](
+					filter.kernel.values.flatMap((row, fy) => row.map((w, fx) => 
+					paddedImage.values[mod(y+fy, paddedImage.size.y)][mod(x+fx, paddedImage.size.x)]*
 					filter.kernel.values[mod((filter.flip?-1:1)*fy+(filter.flip?-1:0), filter.kernel.size.y)][mod((filter.flip?-1:1)*fx+(filter.flip?-1:0), filter.kernel.size.x)]
 					)).reduce((a,b)=>a+b, 0)/(filter.normalize?filterNorm:1))
 			)
@@ -547,7 +549,7 @@
 
 <div class="image-container">
 	<h2>Input Image</h2>
-	<Canvas examples={imageExamples}  bind:range={inputRange} bind:image={inputImage} brush={brush} />
+	<Canvas minSize={10} examples={imageExamples}  bind:range={inputRange} bind:image={inputImage} brush={brush} />
 </div>
 
 <div class="image-container">

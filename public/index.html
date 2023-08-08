@@ -23,6 +23,25 @@
 			text-align: center;
 			margin: 3em;
 		}
+
+		header {
+			max-width: 60em;
+		}
+
+		details {
+			display: block;
+			width: 90vw;
+			max-width: 60em;
+			margin: 1em 0;
+		}
+
+		summary {
+			cursor: pointer;
+		}
+
+		h1, summary {
+			text-align: center;
+		}
 	</style>
 </head>
 
@@ -31,8 +50,32 @@
 		<header>
 			<h1>2D Convolution</h1>
 
-			<p>Use the brush to draw something into the Input Image below. Set the padding to increate the images size.</p>
-			<p>Use the brush to draw a pattern into the filters Kernel image.</p>
+			<details>
+				<summary>Explanation</summary>
+				<p>Convolution is an operation by which two functions/signals can be combined into a third one. The convolution operation <a href="https://static.laszlokorte.de/lti/">for the 1-dimensional case is desribed here.</a></p>
+
+				<p>The convolution operation can also be defined for higher dimensions. In the case of 2-dimensional signals we can picture the process of overlaying one picture (the kernel) on top of the other (the input image) and weighting (ie. multiplying) each pixel in the lower image with the corresponding pixel value of the image above, the summing all the weighted values. This is done for each possible position and the resulting sums are collected in the output image. The size of the output image corresponds to the number of possible positions the two images can be overlayed on each other. Because the two images must always fully overlap, a larger kernel can be positioned in fewer combinations than a larger kernel. Therefor the width of the output image must be <code>input_image_width - kernel_width + 1</code>. The input image size can be increased by introducing additonal padding.</p>
+
+				<p>Use the brush to draw something into the <strong>Input Image</strong> below. Set the padding to increate the images size. Then use the brush to draw a pattern into the filters <strong>Kernel</strong> image.
+				Click on a pixel in the <strong>Padded Image</strong> to see which pixels in the <strong>Filered Image</strong> get affected. Select a pixel in the <strong>Filetered Image</strong> to se which pixels from the Padded Image got used to calculate its value.
+				</p>
+
+				<p>
+					For the Filter you can choose between a Convolution or Correlation operation. The difference is if the Kernel gets flipped when overlayed ontop of the Padded Image. For symmetric Kernels it makes no difference. For non-symmetric Kernels notice the overlayed Kernels orientation when focusing Pixels in the Padded Image and in the Filtered Image. <a href="https://static.laszlokorte.de/lti/">Compare this with the 1-dimensional convolution</a>
+				</p>
+
+				<p>
+					The <strong>Element-wise Operation</strong> of the filter allows to apply an additional function to each pixel value of the output. When selecting the <strong>Identity</strong> function (ie. apply no function at all) the output is only a weighted sum of the Input Image. Non-linear function like ceil, floor or relu allow for more sophisticated effects.
+				</p>
+
+				<p>
+					If the kernel is set to be normalized all output values will be devided by the sum of all the Kernels pixels values. Notice that if not normalized the range of values in the output image may vary from the Input Image. The values in the output Image can either by rescaled so that the largest value is 1.0 or just clipped at 1.0. 
+				</p>
+
+				<p>
+					Use any of the provided examples as inspiration.
+				</p>
+			</details>
 		</header>
 
 		<div id="root">

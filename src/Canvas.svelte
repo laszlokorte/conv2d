@@ -9,6 +9,7 @@
 	let config = false
 
 	export let maxSize = 50
+	export let minSize = 3
 
 	export let examples = {}
 
@@ -321,9 +322,9 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 <legend class="option-container-label">Dimensions</legend>
 <dl class="options">
 <dt>Width</dt>
-<dd><input type="number" size="5" min="3" max={maxSize} step="1" value={image.size.x} bind:this={widthInput}/></dd>
+<dd><input type="number" size="5" min={minSize} max={maxSize} step="1" value={image.size.x} bind:this={widthInput}/></dd>
 <dt>Height</dt>
-<dd><input type="number" size="5" min="3" max={maxSize} step="1" value={image.size.y} bind:this={heightInput}/></dd>
+<dd><input type="number" size="5" min={minSize} max={maxSize} step="1" value={image.size.y} bind:this={heightInput}/></dd>
 <dt>Value Range</dt>
 <dd>
 	<ul>
