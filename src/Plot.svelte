@@ -28,7 +28,7 @@
 
 	function startPoint(evt) {
 		active = true
-		point(evt,true)
+		point(evt, true)
 	}
 	
 

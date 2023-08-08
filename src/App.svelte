@@ -268,7 +268,7 @@
 			const modX = (original.size.x)*2
 
 			const doubleY = mod(y, modY)
-			const doubleX = mod(x,modY)
+			const doubleX = mod(x, modX)
 
 			const yover = (doubleY/original.size.y)<<0
 			const xover = (doubleX/original.size.x)<<0
@@ -442,16 +442,6 @@
 		background: #fffa;
 
 	}
-	
-	.image-array {
-		max-width: 18em;
-		max-height: 24em;
-		width: 100%;
-		min-width: 20em;
-		height: auto;
-		border: 1px solid white;
-		display: block;
-	}
 
 	.filter-chain {
 		display: flex;
@@ -517,10 +507,9 @@
 
 		<div style:margin="auto">
 			<strong>Examples</strong>
-			<button class="small-button" on:click={() => loadExample('Box Blur')}>Box Blur</button>
-			<button class="small-button" on:click={() => loadExample('Vertical Edges')}>Vertical Edges</button>
-			<button class="small-button" on:click={() => loadExample('erosion')}>Erosion</button>
-			<button class="small-button" on:click={() => loadExample('dilation')}>Dilation</button>
+			{#each Object.keys(fullExamples) as ex}
+			<button class="small-button" on:click={() => loadExample(ex)}>{ex}</button>
+			{/each}
 		</div>
 	
 <section class="brush" class:sticky={brushSticky}>
@@ -528,7 +517,7 @@
 	<legend class="option-container-label">Brush / <label><input type="checkbox" bind:checked={brushSticky}> Pinned</label></legend>
 	<dl class="options">
 	<dt>Intensity </dt>
-	<dd>	<svg style:cursor="pointer" style="border:1px solid black" viewBox="0 0 10 10" width={20} height={20}><rect x="0" y="0" width="10" height="10" style:--intensity={brush.value} on:click={() => {brush.value = 1-brush.value}} fill="magenta" class="intensity" /></svg>
+	<dd>	<svg style:cursor="pointer" style="border:1px solid black" viewBox="0 0 10 10" width={20} height={20}><rect x="0" y="0" width="10" height="10" style:--intensity={brush.value} tabindex="0" role="button" on:keypress={() => {brush.value = 1-brush.value}} on:click={() => {brush.value = 1-brush.value}} fill="magenta" class="intensity" /></svg>
 </dd>
 	<dd><input style:--intensity={brush.value} class="intensity" type="range" min="0" max="1" step="0.05" bind:value={brush.value}/></dd>
 	<dt>Size</dt>
