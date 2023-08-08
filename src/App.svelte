@@ -1,5 +1,6 @@
 <script>
 	import Canvas from './Canvas.svelte'
+	import Plot from './Plot.svelte'
 
 	let numberFormatter = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero', trailingZeroDisplay: 'auto' })
 
@@ -20,11 +21,11 @@
 	function focusInput(evt) {
 		const newFocus = {
 			type: 'input',
-			x: 1*evt.currentTarget.getAttribute('data-x'),
-			y: 1*evt.currentTarget.getAttribute('data-y'),
+			x: Math.floor(evt.detail.x),
+			y: Math.floor(evt.detail.y),
 		}
 
-		if(focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
+		if(evt.detail.initial && focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
 			focus = null
 		} else {
 			focus = newFocus
@@ -34,11 +35,11 @@
 	function focusOutput(evt) {
 		const newFocus = {
 			type: 'output',
-			x: 1*evt.currentTarget.getAttribute('data-x'),
-			y: 1*evt.currentTarget.getAttribute('data-y'),
+			x: Math.floor(evt.detail.x),
+			y: Math.floor(evt.detail.y),
 		}
 
-		if(focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
+		if(evt.detail.initial && focus && newFocus.type == focus.type && newFocus.x == focus.x && newFocus.y == focus.y) {
 			focus = null
 		} else {
 			focus = newFocus
@@ -578,10 +579,10 @@
 
 	<div>
 			<h2>Padded Image</h2>
-		<svg role="presentation" class="image-array no-cursor" viewBox="0 0 {paddedImage.size.x} {paddedImage.size.y}" width="{paddedImage.size.x}" height="{paddedImage.size.y}" preserveAspectRatio="meet xMidYMid">
+		<Plot size={paddedImage.size} on:point={focusInput}>
 		{#each paddedImage.values as row, y}
 			{#each row as value, x}
-				<rect on:click={focusInput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={(value-inputRange)/(1-inputRange)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+				<rect pointer-events="none" data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={(value-inputRange)/(1-inputRange)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 			{/each}
 		{/each}
 		{#if (focus && focus.type == 'input')}
@@ -601,7 +602,7 @@
 
 		{/if}
 			<rect pointer-events="none" stroke="cyan" fill="none" x={filter.padding.left} y={filter.padding.top} width={inputImage.size.x} height={inputImage.size.y} vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
-		</svg>
+		</Plot>
 	</div>
 
 	
@@ -640,10 +641,10 @@
 <div class="image-container">
 		<h2>Filtered Image</h2>
 	<div class="figure-with-legend">
-		<svg style:flx-shrink="0" role="presentation" class="image-array no-cursor" viewBox="0 0 {filteredImage.size.x} {filteredImage.size.y}" width="{filteredImage.size.x}" height="{filteredImage.size.y}" preserveAspectRatio="meet xMidYMid">
+		<Plot size={filteredImage.size} on:point={focusOutput}>
 	{#each filteredImage.values as row, y}
 		{#each row as value, x}
-			<rect on:click={focusOutput} data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={!clipOutput?(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1):Math.max(0,Math.min(1, value))} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			<rect data-x={x} data-y={y} cursor="pointer" class="intensity" style:--intensity={!clipOutput?(value-filteredImageMin)/((filteredImageMax-filteredImageMin)||1):Math.max(0,Math.min(1, value))} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
 		{/each}
 	{/each}
 		{#if (focus && focus.type == 'output')}
@@ -660,7 +661,7 @@
 		</svg>
 
 		{/if}
-	</svg>
+	</Plot>
 	<div class="legend">
 		<span class="legend-label">{numberFormatter.format(!clipOutput?filteredImageMax:Math.max(0,Math.min(1, filteredImageMax)))}</span>
 		<span class="legend-label">{numberFormatter.format(!clipOutput?filteredImageMin:Math.max(0,Math.min(1, filteredImageMin)))}</span>
