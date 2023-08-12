@@ -75,7 +75,7 @@
 			input: 'Blobs',
 			range: -1,
 		},
-		erosion: {
+		"Erosion": {
 			filter: {
 				flip: false,
 				function: 'floor',
@@ -87,7 +87,7 @@
 			input: 'Letter H',
 			range: 0,
 		},
-		dilation: {
+		"Dilation": {
 			filter: {
 				flip: true,
 				function: 'ceil',
@@ -303,6 +303,8 @@
 
 	const functions = {
 		identity: (x) => x,
+		signum: (x) => Math.sign(x),
+		isPositive: (x) => x>0?1:0,
 		ceil: (x) => Math.ceil(x),
 		floor: (x) => Math.floor(x),
 		abs: (x) => Math.abs(x),
