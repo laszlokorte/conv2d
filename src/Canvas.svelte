@@ -50,6 +50,7 @@
 	let element;
 	let svgPoint;
 	let active = false
+	let outside = true
 
 	let widthInput, heightInput;
 
@@ -71,6 +72,8 @@
 		svgPoint.y = event.clientY;
 		let {x,y} = svgPoint.matrixTransform(ctm.inverse());
 
+
+
 		return {x,y}
 	}
 
@@ -88,6 +91,9 @@
 	}
 
 	function startDrawing(evt) {
+		if(evt.pointerId !== undefined) {
+			evt.currentTarget.setPointerCapture(evt.pointerId);
+		}
 		active = true
 		moveDrawing(evt)
 	}
@@ -125,6 +131,7 @@
 		} else {
 			let signX = 1;
 		  let signY = 1;
+
 		  const deltaX = Math.abs(intX - brush.prev.x)
 		  const deltaY = Math.abs(intY - brush.prev.y)
 			const m = Math.abs(deltaY/deltaX)
@@ -153,6 +160,7 @@
 				}
 			}
 		}
+
 	}
 
 	function smoothstep (x, edge0 = 0.0, edge1 = 1.0) {
@@ -168,6 +176,14 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
   return x;
 }
 
+function enter() {
+	outside = false
+}
+
+function exit() {
+	outside = true
+}
+
 </script>
 
 <style>
@@ -179,6 +195,7 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 		height: auto;
 		border: 1px solid white;
 		display: block;
+		touch-action: none;
 	}
 
 	.no-cursor {
@@ -204,6 +221,10 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 
 	.options-overlay.hidden {
 		visibility: hidden;
+	}
+
+	circle.hidden {
+		display: none;
 	}
 
    .option-container {
@@ -313,7 +334,6 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 	}
 </style>
 
-<svelte:document on:mouseup={() => stopDrawing()} on:mousemove={(evt) => moveDrawing(evt)} />
 
 <section class="container">
 
@@ -342,14 +362,22 @@ function clamp(x, lowerlimit = 0.0, upperlimit = 1.0) {
 
 <div class="vstack">
 	<div class="figure-with-legend">
-<svg bind:this={element} class:active={active} role="presentation" on:mousedown={(evt) => startDrawing(evt)} class="image-array no-cursor" viewBox="0 0 {image.size.x} {image.size.y}" width="{image.size.x}" height="{image.size.y}" preserveAspectRatio="meet xMidYMid">
+<svg bind:this={element} on:pointerenter={enter} on:pointerleave={exit} class:active={active} role="presentation"  on:pointerup={stopDrawing} on:pointerdown={startDrawing} on:pointermove={moveDrawing} on:touchstart={startDrawing} on:touchend={stopDrawing} class="image-array no-cursor" viewBox="0 0 {image.size.x} {image.size.y}" width="{image.size.x}" height="{image.size.y}" preserveAspectRatio="xMidYMid meet">
+	<g pointer-events="none">
+		
 	{#each image.values as row, y}
-		{#each row as value, x}
-			<rect pointer-events="none" class="intensity" style:--intensity={(value-realMin)/(realMax-realMin)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+		<g>
+			{#each row as value, x}
+			<g>
+				<rect pointer-events="none" class="intensity" style:--intensity={(value-realMin)/(realMax-realMin)} fill="magenta" image-rendering="crisp-edges" stroke="#abb3" {x} {y} width="1" height=1  vector-effect="non-scaling-stroke" stroke-width="1px"></rect>
+			</g>
 		{/each}
+		</g>
 	{/each}
-	<circle vector-effect="non-scaling-stroke" r={brush.size/2} cx={current.x} cy={current.y} fill="#fffa" stroke="#0005" stroke-width="1px" />
-	<circle vector-effect="non-scaling-stroke" r={brush.size/2*brush.hardness} cx={current.x} cy={current.y} fill="#fffa" />
+	<circle class:hidden={outside} vector-effect="non-scaling-stroke" r={brush.size/2} cx={current.x} cy={current.y} fill="#fffa" stroke="#0005" stroke-width="1px" />
+	<circle class:hidden={outside} vector-effect="non-scaling-stroke" r={brush.size/2*brush.hardness} cx={current.x} cy={current.y} fill="#fffa" />
+	
+	</g>
 </svg>
 	<div class="legend">
 		<span class="legend-label">{numberFormatter.format(max)}</span>

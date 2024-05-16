@@ -27,6 +27,9 @@
 	}
 
 	function startPoint(evt) {
+		if(evt.pointerId !== undefined) {
+			evt.currentTarget.setPointerCapture(evt.pointerId);
+		}
 		active = true
 		point(evt, true)
 	}
@@ -58,12 +61,12 @@
 		height: auto;
 		border: 1px solid white;
 		display: block;
+		background: gray;
+		touch-action: none;
 	}
 </style>
 
-<svelte:document on:mouseup={() => stopPoint()} on:mousemove={(evt) => point(evt)} />
 
-
-<svg on:mousedown={startPoint} bind:this={element} role="presentation" class="image-array" viewBox="0 0 {size.x} {size.y}" width="{size.x}" height="{size.y}" preserveAspectRatio="meet xMidYMid">
+<svg on:pointerup={() => stopPoint()}  on:pointerdown={startPoint} on:pointermove={point} on:touchend={() => stopPoint()}  on:touchstart={startPoint} bind:this={element} role="presentation" class="image-array" viewBox="0 0 {size.x} {size.y}" width="{size.x}" height="{size.y}" preserveAspectRatio="xMidYMid meet">
 	<slot></slot>
 </svg>
