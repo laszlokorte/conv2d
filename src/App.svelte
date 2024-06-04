@@ -1,4 +1,5 @@
 <script>
+	import { identity } from "svelte/internal";
 	import Canvas from "./Canvas.svelte";
 	import Plot from "./Plot.svelte";
 
@@ -392,7 +393,7 @@
 				[0, 0, 0, 0, 0],
 			],
 		},
-		PrewittVertical: {
+		PrewittHorizontal: {
 			size: { x: 5, y: 5 },
 			values: [
 				[0, 0, 0, 0, 0],
@@ -403,7 +404,7 @@
 			],
 			range: -1,
 		},
-		PrewittHorizontal: {
+		PrewittVertical: {
 			size: { x: 5, y: 5 },
 			values: [
 				[0, 0, 0, 0, 0],
@@ -414,7 +415,7 @@
 			],
 			range: -1,
 		},
-		SobelVertical: {
+		SobelHorizontal: {
 			size: { x: 5, y: 5 },
 			values: [
 				[0, 0, 0, 0, 0],
@@ -425,7 +426,7 @@
 			],
 			range: -1,
 		},
-		SobelHorizontal: {
+		SobelVertical: {
 			size: { x: 5, y: 5 },
 			values: [
 				[0, 0, 0, 0, 0],
@@ -677,13 +678,13 @@
 
 	const poolers = {
 		mean: {
-			skip: (v) => v == 0,
+			skip: (v) => false,
 			empty: 0,
 			step: (a, b) => a + b,
 			finish: (normalizer, x) => x / normalizer,
 		},
 		min: {
-			skip: (v) => v == 0,
+			skip: (v, min, max) => v == 0 && min == 0,
 			empty: Infinity,
 			step: (a, b) => Math.min(a, b),
 			finish: (normalizer, x) => {
@@ -691,7 +692,7 @@
 			},
 		},
 		max: {
-			skip: (v) => v == 0,
+			skip: (v, min, max) => v == 0 && min == 0,
 			empty: -Infinity,
 			step: (a, b) => Math.max(a, b),
 			finish: (normalizer, x) => x / normalizer,
@@ -770,6 +771,8 @@
 											if (
 												poolers[filter.pool].skip(
 													kernelValue,
+													filterRange,
+													1,
 												)
 											) {
 												return null;
@@ -1139,12 +1142,19 @@
 						<dt>Element-wise Operation</dt>
 						<dd>
 							<select bind:value={filter.function}>
-								{#each Object.keys(functions) as fun}
-									<option value={fun}
-										>{fun.charAt(0).toUpperCase() +
-											fun.slice(1)}</option
-									>
-								{/each}
+								<optgroup label="Linear">
+									<option value={"identity"}>Identity</option>
+								</optgroup>
+								<optgroup label="Non-Linear">
+									{#each Object.keys(functions) as fun}
+										{#if fun !== "identity"}
+											<option value={fun}
+												>{fun.charAt(0).toUpperCase() +
+													fun.slice(1)}</option
+											>
+										{/if}
+									{/each}
+								</optgroup>
 							</select>
 						</dd>
 						<dt>Normalize</dt>
@@ -1164,6 +1174,7 @@
 					maxSize={10}
 					examples={kernelExamples}
 					bind:image={filter.kernel}
+					skipper={poolers[filter.pool].skip}
 					{brush}
 				/>
 			</div>
