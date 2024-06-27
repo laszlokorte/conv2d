@@ -1296,7 +1296,9 @@
 									<option value={"max"}>Max</option>
 									<option value={"min"}>Min</option>
 									<option value={"median"}>Median</option>
-									<option value={"equal"}>Equality</option>
+									<option value={"equal"}
+										>All pairwise equal</option
+									>
 								</optgroup>
 							</select>
 						</dd>

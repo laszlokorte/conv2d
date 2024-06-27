@@ -94,7 +94,11 @@
 				</p>
 
 				<p>
-					The <strong>Element-wise Operation</strong> of the filter allows to apply an additional function to each pixel value of the output. When selecting the <strong>Identity</strong> function (ie. apply no function at all) the output is only a weighted sum of the Input Image. Non-linear function like ceil, floor or relu allow for more sophisticated effects.
+					You can also choose from various pooling operations. The pooling determines how the values overlayed by the kernel at each position shall be combined into a single output value. For classic convolution and correlation the kernel values and image values are multiplied elementwise and then summed. But instead of summing the values one could also select only the minimum, only the maximum or only the mean. When applying an alternative operation instead of summing the filter is <em>not linear</em> anymore.  One additional non-linear poling strategy is to not multiply the kernel values with the image values but instead check them for pairwise equality. Then the filters output value is only 1 at positions where whe image matches the filter exactly and 0 everywhere else. 
+				</p>
+
+				<p>
+					The <strong>Element-wise Operation</strong> of the filter allows to apply an additional function to each output value. Selecting anything but <em>Identity</em> causes the filter to be <em>not linear</em> anymore. But functions like ceil, floor or relu allow for more sophisticated effects.
 				</p>
 
 				<p>
