@@ -15,6 +15,7 @@
 	let usePadding = false;
 	let brush = {
 		active: false,
+		dontcare: false,
 		value: 1,
 		size: 1,
 		hardness: 0,
@@ -92,7 +93,7 @@
 			input: "Blobs",
 			range: 0,
 		},
-		"Vertical Edges": {
+		"Horizontal Edges": {
 			filter: {
 				flip: true,
 				pool: "mean",
@@ -159,6 +160,52 @@
 				paddingType: "zero",
 			},
 			input: "Letter H",
+			range: 0,
+		},
+		"Hit-or-miss": {
+			filter: {
+				flip: true,
+				pool: "equal",
+				function: "identity",
+				normalize: false,
+				padding: { left: 2, right: 2, top: 2, bottom: 2 },
+
+				kernel: {
+					size: { x: 5, y: 5 },
+					values: [
+						[null, null, null, null, null],
+						[null, 1, 1, 1, null],
+						[null, 1, 0, 1, null],
+						[null, 1, 1, 1, null],
+						[null, null, null, null, null],
+					],
+				},
+				paddingType: "zero",
+			},
+			input: "Loops",
+			range: 0,
+		},
+		"Hit-or-miss (Exact)": {
+			filter: {
+				flip: true,
+				pool: "equal",
+				function: "identity",
+				normalize: false,
+				padding: { left: 2, right: 2, top: 2, bottom: 2 },
+
+				kernel: {
+					size: { x: 5, y: 5 },
+					values: [
+						[0, 0, 0, 0, 0],
+						[0, 1, 1, 1, 0],
+						[0, 1, 0, 1, 0],
+						[0, 1, 1, 1, 0],
+						[0, 0, 0, 0, 0],
+					],
+				},
+				paddingType: "zero",
+			},
+			input: "Loops",
 			range: 0,
 		},
 		"Game of Life": {
@@ -380,6 +427,31 @@
 				],
 			],
 		},
+		Loops: {
+			size: { x: 20, y: 20 },
+			values: [
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+				[0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0],
+				[0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+				[0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1],
+				[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0],
+				[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1],
+				[0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0],
+				[0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			],
+		},
 	};
 
 	let kernelExamples = {
@@ -520,6 +592,16 @@
 				[0.0, 0.0, 0.0, 0.0, 0.0],
 			],
 		},
+		Loop: {
+			size: { x: 5, y: 5 },
+			values: [
+				[null, null, null, null, null],
+				[null, 1, 1, 1, null],
+				[null, 1, 0, 1, null],
+				[null, 1, 1, 1, null],
+				[null, null, null, null, null],
+			],
+		},
 	};
 
 	let inputImage = {
@@ -527,6 +609,10 @@
 		values: Array(20)
 			.fill(0)
 			.map((v) => Array(20).fill(v)),
+	};
+
+	window.exportImage = function () {
+		console.log(JSON.stringify(inputImage));
 	};
 
 	let inputRange, filterRange;
@@ -671,46 +757,67 @@
 		: inputImage;
 
 	$: filterNorm =
-		Math.abs(filter.kernel.values.flat().reduce((a, b) => a + b, 0)) || 1;
+		Math.abs(
+			filter.kernel.values
+				.flat()
+				.reduce((a, b) => a + (b === null ? 0 : b), 0),
+		) || 1;
 	$: filterFlipped = filter.kernel.values
 		.toReversed()
 		.map((r) => r.toReversed());
 
 	const poolers = {
 		mean: {
-			skip: (v) => false,
+			allowNull: true,
 			empty: 0,
 			step: (a, b) => a + b,
+			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => x / normalizer,
+			canNormalize: true,
 		},
 		min: {
-			skip: (v, min, max) => v == 0 && min == 0,
+			allowNull: true,
 			empty: Infinity,
 			step: (a, b) => Math.min(a, b),
+			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => {
 				return x / normalizer;
 			},
+			canNormalize: true,
 		},
 		max: {
-			skip: (v, min, max) => v == 0 && min == 0,
+			allowNull: true,
 			empty: -Infinity,
 			step: (a, b) => Math.max(a, b),
+			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => x / normalizer,
+			canNormalize: true,
 		},
 		median: {
-			skip: (v) => v == 0,
+			allowNull: true,
 			empty: [],
 			step: (acc, b) => {
 				return [...acc, b];
 			},
+			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => {
 				x.sort();
 				return (
 					(x[Math.floor((x.length - 1) / 2)] +
 						x[Math.ceil((x.length - 1) / 2)]) /
-					2
+					2 /
+					normalizer
 				);
 			},
+			canNormalize: true,
+		},
+		equal: {
+			allowNull: true,
+			empty: true,
+			step: (a, b) => (a && b ? 1 : 0),
+			pairwise: (k, i) => k === i,
+			finish: (normalizer, x) => x,
+			canNormalize: false,
 		},
 	};
 
@@ -768,18 +875,13 @@
 													)
 												];
 
-											if (
-												poolers[filter.pool].skip(
-													kernelValue,
-													filterRange,
-													1,
-												)
-											) {
+											if (kernelValue === null) {
 												return null;
 											}
 
-											const factor =
-												imageValue * kernelValue;
+											const factor = poolers[
+												filter.pool
+											].pairwise(imageValue, kernelValue);
 											return factor;
 										}),
 									)
@@ -847,14 +949,37 @@
 							role="button"
 							on:keypress={() => {
 								brush.value = 1 - brush.value;
+								brush.dontcare = false;
 							}}
 							on:click={() => {
 								brush.value = 1 - brush.value;
+								brush.dontcare = false;
 							}}
 							fill={highlightColor}
 							class="intensity"
-						/></svg
-					>
+						/>
+
+						{#if brush.dontcare}
+							<g opacity="0.8">
+								<line
+									stroke-width="1"
+									x1={0 + 0.1}
+									y1={0 + 0.1}
+									x2={0 + 10 - 0.1}
+									y2={0 + 10 - 0.1}
+									stroke="#ff5555"
+								/>
+								<line
+									stroke-width="1"
+									x2={0 + 0.1}
+									y1={0 + 0.1}
+									x1={0 + 10 - 0.1}
+									y2={0 + 10 - 0.1}
+									stroke="#ff5555"
+								/>
+							</g>
+						{/if}
+					</svg>
 				</dd>
 				<dd>
 					<input
@@ -865,7 +990,20 @@
 						max="1"
 						step="0.05"
 						bind:value={brush.value}
+						on:input={() => {
+							brush.dontcare = false;
+						}}
 					/>
+				</dd>
+				<dd>
+					<label
+						><input
+							style:accent-color="#ffaaaa"
+							style:--intensity={brush.value}
+							type="checkbox"
+							bind:checked={brush.dontcare}
+						/> Don't-care</label
+					>
 				</dd>
 				<dt>Size</dt>
 				<dd>{brush.size}</dd>
@@ -1061,20 +1199,42 @@
 								>
 									{#each filter.flip ? filterFlipped : filter.kernel.values as row, y}
 										{#each row as value, x}
-											<rect
-												fill={highlightColor}
-												fill-opacity={((value -
-													filterRange) /
-													(1 - filterRange || 1)) *
-													0.7}
-												image-rendering="crisp-edges"
-												{x}
-												{y}
-												width="1"
-												height="1"
-												vector-effect="non-scaling-stroke"
-												stroke-width="1px"
-											></rect>
+											{#if value !== null}
+												<rect
+													fill={highlightColor}
+													fill-opacity={((value -
+														filterRange) /
+														(1 - filterRange ||
+															1)) *
+														0.7}
+													image-rendering="crisp-edges"
+													{x}
+													{y}
+													width="1"
+													height="1"
+													vector-effect="non-scaling-stroke"
+													stroke-width="1px"
+												></rect>
+											{:else}
+												<g opacity="0.8">
+													<line
+														stroke-width="0.1"
+														x1={x + 0.1}
+														y1={y + 0.1}
+														x2={x + 1 - 0.1}
+														y2={y + 1 - 0.1}
+														stroke="#ffaaaa"
+													/>
+													<line
+														stroke-width="0.1"
+														x1={x + 1 - 0.1}
+														y1={y + 0.1}
+														x2={x + 0.1}
+														y2={y + 1 - 0.1}
+														stroke="#ffaaaa"
+													/>
+												</g>
+											{/if}
 										{/each}
 									{/each}
 								</svg>
@@ -1136,6 +1296,7 @@
 									<option value={"max"}>Max</option>
 									<option value={"min"}>Min</option>
 									<option value={"median"}>Median</option>
+									<option value={"equal"}>Equality</option>
 								</optgroup>
 							</select>
 						</dd>
@@ -1157,13 +1318,15 @@
 								</optgroup>
 							</select>
 						</dd>
-						<dt>Normalize</dt>
-						<dd>
-							<input
-								type="checkbox"
-								bind:checked={filter.normalize}
-							/>
-						</dd>
+						{#if poolers[filter.pool].canNormalize}
+							<dt>Normalize</dt>
+							<dd>
+								<input
+									type="checkbox"
+									bind:checked={filter.normalize}
+								/>
+							</dd>
+						{/if}
 					</dl>
 				</fieldset>
 				<h2>
@@ -1174,7 +1337,7 @@
 					maxSize={10}
 					examples={kernelExamples}
 					bind:image={filter.kernel}
-					skipper={poolers[filter.pool].skip}
+					allowNull={poolers[filter.pool].allowNull}
 					{brush}
 				/>
 			</div>
@@ -1261,23 +1424,45 @@
 									{#each !filter.flip ? filterFlipped : filter.kernel.values as row, y}
 										<g>
 											{#each row as value, x}
-												<g>
-													<rect
-														fill={highlightColor}
-														fill-opacity={((value -
-															filterRange) /
-															(1 - filterRange ||
-																1)) *
-															0.7}
-														image-rendering="crisp-edges"
-														{x}
-														{y}
-														width="1"
-														height="1"
-														vector-effect="non-scaling-stroke"
-														stroke-width="1px"
-													></rect>
-												</g>
+												{#if value !== null}
+													<g>
+														<rect
+															fill={highlightColor}
+															fill-opacity={((value -
+																filterRange) /
+																(1 -
+																	filterRange ||
+																	1)) *
+																0.7}
+															image-rendering="crisp-edges"
+															{x}
+															{y}
+															width="1"
+															height="1"
+															vector-effect="non-scaling-stroke"
+															stroke-width="1px"
+														></rect>
+													</g>
+												{:else}
+													<g opacity="0.8">
+														<line
+															stroke-width="0.1"
+															x1={x + 0.1}
+															y1={y + 0.1}
+															x2={x + 1 - 0.1}
+															y2={y + 1 - 0.1}
+															stroke="#ffaaaa"
+														/>
+														<line
+															stroke-width="0.1"
+															x1={x + 1 - 0.1}
+															y1={y + 0.1}
+															x2={x + 0.1}
+															y2={y + 1 - 0.1}
+															stroke="#ffaaaa"
+														/>
+													</g>
+												{/if}
 											{/each}
 										</g>
 									{/each}
@@ -1325,9 +1510,13 @@
 
 	.options {
 		display: grid;
-		grid-template-columns: auto 3em auto;
+		grid-template-columns: auto 3em auto auto;
 		justify-content: start;
 		gap: 0.2em 1em;
+	}
+
+	.options dt {
+		grid-column: 1/1;
 	}
 	.options-list {
 		display: grid;

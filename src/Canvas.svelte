@@ -17,7 +17,7 @@
 
 	export let maxSize = 50;
 	export let minSize = 3;
-	export let skipper = () => false;
+	export let allowNull = false;
 
 	export let examples = {};
 
@@ -139,8 +139,10 @@
 			return;
 		}
 
+		const placeNull = evt.altKey || evt.ctrlKey || evt.shiftKey;
+
 		if (brush.prev.x == null) {
-			placeBrush(intX, intY, fracX, fracY);
+			placeBrush(intX, intY, fracX, fracY, placeNull);
 		} else {
 			let signX = 1;
 			let signY = 1;
@@ -157,6 +159,7 @@
 						Math.ceil(brush.prev.y + i * m * signY),
 						fracX,
 						fracY,
+						placeNull,
 					);
 			else
 				for (let i = 0; i <= deltaY; i++)
@@ -165,6 +168,7 @@
 						Math.ceil(brush.prev.y + i * signY),
 						fracX,
 						fracY,
+						placeNull,
 					);
 		}
 
@@ -172,7 +176,8 @@
 		brush.prev.y = intY;
 	}
 
-	function placeBrush(x, y, fracX, fracY) {
+	function placeBrush(x, y, fracX, fracY, invertNull) {
+		const placeNull = brush.dontcare !== invertNull && allowNull;
 		const value = 1 * realMin + (realMax - realMin) * brush.value;
 		const radius = brush.size / 2 + 0.5;
 		let radius2 = radius * radius;
@@ -195,8 +200,13 @@
 							radius2 * Math.pow(brush.hardness, 64),
 							radius2,
 						);
-					image.values[yy][xx] =
-						image.values[yy][xx] * (1 - alpha) + alpha * value;
+					const newValue = placeNull
+						? alpha > 0.5
+							? null
+							: image.values[yy][xx]
+						: image.values[yy][xx] * (1 - alpha) + alpha * value;
+
+					image.values[yy][xx] = newValue;
 				}
 			}
 		}
@@ -258,14 +268,20 @@
 					<ul>
 						<li>
 							<label
-								><input type="radio" bind:group={selectedRange} value={0} /> Positive
-								(0.0 to 1.0)</label
+								><input
+									type="radio"
+									bind:group={selectedRange}
+									value={0}
+								/> Positive (0.0 to 1.0)</label
 							>
 						</li>
 						<li>
 							<label
-								><input type="radio" bind:group={selectedRange} value={-1} /> Symmetric
-								(-1.0 to 1.0)</label
+								><input
+									type="radio"
+									bind:group={selectedRange}
+									value={-1}
+								/> Symmetric (-1.0 to 1.0)</label
 							>
 						</li>
 					</ul>
@@ -273,7 +289,9 @@
 				<dt></dt>
 				<dd>
 					<button on:click={clear}>Resize+Clear</button><br />
-					<button class="small-button" on:click={toggleConfig}>Cancel</button>
+					<button class="small-button" on:click={toggleConfig}
+						>Cancel</button
+					>
 				</dd>
 			</dl>
 		</fieldset>
@@ -306,7 +324,8 @@
 									<rect
 										pointer-events="none"
 										class="intensity"
-										style:--intensity={(value - realMin) / (realMax - realMin)}
+										style:--intensity={(value - realMin) /
+											(realMax - realMin)}
 										fill="magenta"
 										image-rendering="crisp-edges"
 										stroke="#abb3"
@@ -318,15 +337,15 @@
 										stroke-width="1px"
 									></rect>
 								</g>
-								{#if skipper && skipper(value, min, max)}
-									<g opacity="0.5">
+								{#if value === null}
+									<g opacity="0.8">
 										<line
 											stroke-width="0.05"
 											x1={x + 0.1}
 											y1={y + 0.1}
 											x2={x + 1 - 0.1}
 											y2={y + 1 - 0.1}
-											stroke="#ff5555"
+											stroke="#ffaaaa"
 										/>
 										<line
 											stroke-width="0.05"
@@ -334,7 +353,7 @@
 											y1={y + 0.1}
 											x2={x + 0.1}
 											y2={y + 1 - 0.1}
-											stroke="#ff5555"
+											stroke="#ffaaaa"
 										/>
 									</g>
 								{/if}
@@ -397,6 +416,7 @@
 		border: 1px solid white;
 		display: block;
 		touch-action: none;
+		user-select: none;
 	}
 
 	.no-cursor {
