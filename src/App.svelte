@@ -774,6 +774,7 @@
 			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => x / normalizer,
 			canNormalize: true,
+			canElementWise: true,
 		},
 		min: {
 			allowNull: true,
@@ -784,6 +785,7 @@
 				return x / normalizer;
 			},
 			canNormalize: true,
+			canElementWise: true,
 		},
 		max: {
 			allowNull: true,
@@ -792,6 +794,7 @@
 			pairwise: (k, i) => k * i,
 			finish: (normalizer, x) => x / normalizer,
 			canNormalize: true,
+			canElementWise: true,
 		},
 		median: {
 			allowNull: true,
@@ -810,6 +813,7 @@
 				);
 			},
 			canNormalize: true,
+			canElementWise: true,
 		},
 		equal: {
 			allowNull: true,
@@ -818,6 +822,7 @@
 			pairwise: (k, i) => k === i,
 			finish: (normalizer, x) => x,
 			canNormalize: false,
+			canElementWise: false,
 		},
 	};
 
@@ -1286,40 +1291,48 @@
 								<option value={false}>Correlation</option>
 							</select>
 						</dd>
-						<dt>Pooling</dt>
+						<dt>Pooling Operation</dt>
 						<dd>
 							<select bind:value={filter.pool}>
 								<optgroup label="Linear">
-									<option value={"mean"}>Sum</option>
+									<option value={"mean"}>Weighted Sum</option>
 								</optgroup>
 								<optgroup label="Non-Linear">
-									<option value={"max"}>Max</option>
-									<option value={"min"}>Min</option>
-									<option value={"median"}>Median</option>
+									<option value={"max"}>Weighted Max</option>
+									<option value={"min"}>Weighted Min</option>
+									<option value={"median"}
+										>Weighted Median</option
+									>
 									<option value={"equal"}
 										>All pairwise equal</option
 									>
 								</optgroup>
 							</select>
 						</dd>
-						<dt>Element-wise Operation</dt>
-						<dd>
-							<select bind:value={filter.function}>
-								<optgroup label="Linear">
-									<option value={"identity"}>Identity</option>
-								</optgroup>
-								<optgroup label="Non-Linear">
-									{#each Object.keys(functions) as fun}
-										{#if fun !== "identity"}
-											<option value={fun}
-												>{fun.charAt(0).toUpperCase() +
-													fun.slice(1)}</option
-											>
-										{/if}
-									{/each}
-								</optgroup>
-							</select>
-						</dd>
+						{#if poolers[filter.pool].canElementWise}
+							<dt>Element-wise Operation</dt>
+							<dd>
+								<select bind:value={filter.function}>
+									<optgroup label="Linear">
+										<option value={"identity"}
+											>Identity</option
+										>
+									</optgroup>
+									<optgroup label="Non-Linear">
+										{#each Object.keys(functions) as fun}
+											{#if fun !== "identity"}
+												<option value={fun}
+													>{fun
+														.charAt(0)
+														.toUpperCase() +
+														fun.slice(1)}</option
+												>
+											{/if}
+										{/each}
+									</optgroup>
+								</select>
+							</dd>
+						{/if}
 						{#if poolers[filter.pool].canNormalize}
 							<dt>Normalize</dt>
 							<dd>
@@ -1522,7 +1535,7 @@
 	}
 	.options-list {
 		display: grid;
-		grid-template-columns: auto auto;
+		grid-template-columns: 1fr 1fr;
 		justify-content: start;
 		gap: 1em;
 	}
@@ -1534,6 +1547,7 @@
 		border: none;
 		background: #333;
 		color: #fff;
+		align-self: stretch;
 	}
 
 	.option-container-label {

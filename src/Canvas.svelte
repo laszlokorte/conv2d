@@ -81,8 +81,13 @@
 		// Note: rest of method could work with another element,
 		// if you don't want to listen to drags on the entire svg.
 		// But createSVGPoint only exists on <svg> elements.
-		svgPoint.x = event.clientX;
-		svgPoint.y = event.clientY;
+		if (event.touches) {
+			svgPoint.x = event.touches[0].clientX;
+			svgPoint.y = event.touches[0].clientY;
+		} else {
+			svgPoint.x = event.clientX;
+			svgPoint.y = event.clientY;
+		}
 		let { x, y } = svgPoint.matrixTransform(ctm.inverse());
 
 		return { x, y };
@@ -306,6 +311,7 @@
 				class:active
 				role="presentation"
 				on:pointerup={stopDrawing}
+				on:pointercancel={stopDrawing}
 				on:pointerdown={startDrawing}
 				on:pointermove={moveDrawing}
 				on:touchstart={startDrawing}
