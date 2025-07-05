@@ -116,7 +116,7 @@
 			input: "Blobs",
 			range: -1,
 		},
-		Erosion: {
+		"Binary Erosion": {
 			filter: {
 				flip: false,
 				pool: "mean",
@@ -139,7 +139,7 @@
 			input: "Letter H",
 			range: 0,
 		},
-		Dilation: {
+		"Binary Dilation": {
 			filter: {
 				flip: true,
 				pool: "mean",
@@ -160,6 +160,52 @@
 				paddingType: "zero",
 			},
 			input: "Letter H",
+			range: 0,
+		},
+		"Grayscale Erosion": {
+			filter: {
+				flip: false,
+				pool: "min",
+				function: "identity",
+				normalize: false,
+				padding: { left: 2, right: 2, top: 2, bottom: 2 },
+
+				kernel: {
+					size: { x: 5, y: 5 },
+					values: [
+						[null, null, null, null, null],
+						[null, 1, 1, 1, null],
+						[null, 1, 1, 1, null],
+						[null, 1, 1, 1, null],
+						[null, null, null, null, null],
+					],
+				},
+				paddingType: "zero",
+			},
+			input: "Blurred H",
+			range: 0,
+		},
+		"Grayscale Dilation": {
+			filter: {
+				flip: true,
+				pool: "max",
+				function: "identity",
+				normalize: false,
+				padding: { left: 2, right: 2, top: 2, bottom: 2 },
+
+				kernel: {
+					size: { x: 5, y: 5 },
+					values: [
+						[null, null, null, null, null],
+						[null, 1, 1, 1, null],
+						[null, 1, 1, 1, null],
+						[null, 1, 1, 1, null],
+						[null, null, null, null, null],
+					],
+				},
+				paddingType: "zero",
+			},
+			input: "Blurred H",
 			range: 0,
 		},
 		"Hit-or-miss": {
@@ -450,6 +496,22 @@
 				[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			],
+		},
+		"Blurred H": {
+			size: { x: 10, y: 11 },
+			values: [
+				[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+				[0.2, 0.5, 0.5, 0.5, 0.2, 0.2, 0.5, 0.5, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.2, 0.2, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.2, 0.2, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.5, 0.5, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.2, 0.2, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 1.0, 0.5, 0.2, 0.2, 0.5, 1.0, 0.5, 0.2],
+				[0.2, 0.5, 0.5, 0.5, 0.2, 0.2, 0.5, 0.5, 0.5, 0.2],
+				[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
 			],
 		},
 	};
