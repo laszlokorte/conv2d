@@ -6,6 +6,7 @@
 	let numberFormatter = new Intl.NumberFormat("en-IN", {
 		minimumFractionDigits: 1,
 		maximumFractionDigits: 1,
+		useGrouping: false,
 		signDisplay: "exceptZero",
 		trailingZeroDisplay: "auto",
 	});
@@ -272,7 +273,7 @@
 						[0, 0, 0, 0, 0],
 					],
 				},
-				paddingType: "zero",
+				paddingType: "cyclic",
 			},
 			input: "Glider",
 			range: 0,
@@ -283,7 +284,7 @@
 				pool: "equal",
 				function: "identity",
 				normalize: false,
-				padding: { left: 2, right: 2, top: 2, bottom: 2 },
+				padding: { left: 1, right: 1, top: 1, bottom: 1 },
 				kernel: {
 					size: { x: 3, y: 3 },
 					values: [
@@ -343,10 +344,10 @@
 				[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
 				[0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 				[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-				[0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
-				[0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0],
+				[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+				[0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
 				[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 			],
@@ -1153,6 +1154,7 @@
 				<Canvas
 					minSize={10}
 					examples={imageExamples}
+					feedback={filteredImage}
 					bind:range={inputRange}
 					bind:image={inputImage}
 					{brush}
@@ -1594,7 +1596,7 @@
 						</g>
 					</Plot>
 					<div class="legend">
-						<span class="legend-label"
+						<span class="legend-label top"
 							>{numberFormatter.format(
 								!clipOutput
 									? filteredImageMax
@@ -1604,7 +1606,7 @@
 										),
 							)}</span
 						>
-						<span class="legend-label"
+						<span class="legend-label bottom"
 							>{numberFormatter.format(
 								!clipOutput
 									? filteredImageMin
@@ -1775,9 +1777,11 @@
 
 	.legend > :first-child {
 		color: black;
+		background: white;
 	}
 	.legend > :last-child {
 		color: white;
+		background: black;
 	}
 
 	.figure-with-legend {

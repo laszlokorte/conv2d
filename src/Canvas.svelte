@@ -20,6 +20,7 @@
 	export let allowNull = false;
 
 	export let examples = {};
+	export let feedback = null;
 
 	function toggleConfig() {
 		selectedRange = range;
@@ -409,6 +410,14 @@
 					>{ex}</button
 				>
 			{/each}
+
+			{#if feedback}
+				<button class="small-button" on:click={() => {
+					image = feedback
+				}}
+					>Feedback current output</button
+				>
+			{/if}
 		</div>
 	</div>
 </section>
