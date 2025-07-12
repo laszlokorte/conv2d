@@ -412,7 +412,10 @@
 			{/each}
 
 			{#if feedback}
-				<button class="small-button" on:click={() => {
+				<button disabled={feedback.size.x < minSize || feedback.size.y < minSize} class="small-button" on:click={() => {
+					if(feedback.size.x < minSize || feedback.size.y < minSize) {
+						return
+					}
 					image = feedback
 				}}
 					>Feedback current output</button
@@ -532,6 +535,11 @@
 		border: none;
 		text-decoration: underline;
 		cursor: pointer;
+	}
+
+	.small-button:disabled {
+		cursor: default;
+		opacity: 0.4;
 	}
 
 	.vstack {
