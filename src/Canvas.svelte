@@ -13,6 +13,8 @@
 		trailingZeroDisplay: "auto",
 	});
 
+	const pixelRatio = 20
+
 	let config = false;
 
 	export let maxSize = 50;
@@ -67,6 +69,10 @@
 	let outside = true;
 
 	let widthInput, heightInput;
+	let configHeight = image.size.y, configWidth = image.size.x
+
+	$: widthValid = configWidth >= minSize && configWidth <= maxSize
+	$: heightValid = configHeight >= minSize && configHeight <= maxSize
 
 	export let brush = {
 		value: 1,
@@ -92,10 +98,20 @@
 		const y =
 			((clientY - rect.top) / rect.height) * viewBox.height + viewBox.y;
 
-		return { x, y };
+
+		svgPoint.x = clientX;
+		svgPoint.y = clientY;
+		const svgGlobal = svgPoint.matrixTransform(
+			element.getScreenCTM().inverse(),
+		);
+		return { x: svgGlobal.x/pixelRatio, y: svgGlobal.y/pixelRatio };
 	}
 
-	function clear() {
+	function clear(evt) {
+		evt.preventDefault()
+		if(!widthValid || !heightValid) {
+			return
+		}
 		config = false;
 		image.size.x = widthInput.valueAsNumber << 0;
 		image.size.y = heightInput.valueAsNumber << 0;
@@ -105,7 +121,8 @@
 			.map(() => Array(image.size.x).fill(0));
 	}
 
-	function clearColor() {
+	function clearColor(evt) {
+		evt.preventDefault()
 		config = false;
 		image.values = Array(image.size.y)
 			.fill(null)
@@ -243,30 +260,33 @@
 
 <section class="container">
 	<div class:hidden={!config} class="options-overlay">
+		<form  on:submit={clear}> 
 		<fieldset class="option-container">
 			<legend class="option-container-label">Dimensions</legend>
 			<dl class="options">
 				<dt>Width</dt>
 				<dd>
 					<input
+						class:size-error={!widthValid}
 						type="number"
 						size="5"
 						min={minSize}
 						max={maxSize}
 						step="1"
-						value={image.size.x}
+						bind:value={configWidth}
 						bind:this={widthInput}
 					/>
 				</dd>
 				<dt>Height</dt>
 				<dd>
 					<input
+						class:size-error={!heightValid}
 						type="number"
 						size="5"
 						min={minSize}
 						max={maxSize}
 						step="1"
-						value={image.size.y}
+						bind:value={configHeight}
 						bind:this={heightInput}
 					/>
 				</dd>
@@ -295,13 +315,14 @@
 				</dd>
 				<dt></dt>
 				<dd>
-					<button on:click={clear}>Resize+Clear</button><br />
-					<button class="small-button" on:click={toggleConfig}
+					<button type="submit" disabled={!widthValid || !heightValid}>Resize+Clear</button><br />
+					<button type="reset" class="small-button" on:click={toggleConfig}
 						>Cancel</button
 					>
 				</dd>
 			</dl>
 		</fieldset>
+	</form>
 	</div>
 
 	<div class="vstack">
@@ -319,7 +340,7 @@
 				on:touchstart={startDrawing}
 				on:touchend={stopDrawing}
 				class="image-array no-cursor"
-				viewBox="0 0 {image.size.x} {image.size.y}"
+				viewBox="0 0 {image.size.x*pixelRatio} {image.size.y*pixelRatio}"
 				width={image.size.x}
 				height={image.size.y}
 				preserveAspectRatio="xMidYMid meet"
@@ -337,10 +358,10 @@
 										fill="magenta"
 										image-rendering="crisp-edges"
 										stroke="#abb3"
-										{x}
-										{y}
-										width="1"
-										height="1"
+										x={x*pixelRatio}
+										y={y*pixelRatio}
+										width={pixelRatio}
+										height={pixelRatio}
 										vector-effect="non-scaling-stroke"
 										stroke-width="1px"
 									></rect>
@@ -348,19 +369,19 @@
 								{#if value === null}
 									<g opacity="0.8">
 										<line
-											stroke-width="0.05"
-											x1={x + 0.1}
-											y1={y + 0.1}
-											x2={x + 1 - 0.1}
-											y2={y + 1 - 0.1}
+											stroke-width="1"
+											x1={x*pixelRatio + 0.1}
+											y1={y*pixelRatio + 0.1}
+											x2={x*pixelRatio + pixelRatio - 0.1}
+											y2={y*pixelRatio + pixelRatio - 0.1}
 											stroke="#ffaaaa"
 										/>
 										<line
-											stroke-width="0.05"
-											x1={x + 1 - 0.1}
-											y1={y + 0.1}
-											x2={x + 0.1}
-											y2={y + 1 - 0.1}
+											stroke-width="1"
+											x1={x*pixelRatio + pixelRatio - 0.1}
+											y1={y*pixelRatio + 0.1}
+											x2={x*pixelRatio + 0.1}
+											y2={y*pixelRatio + pixelRatio - 0.1}
 											stroke="#ffaaaa"
 										/>
 									</g>
@@ -371,9 +392,9 @@
 					<circle
 						class:hidden={outside}
 						vector-effect="non-scaling-stroke"
-						r={brush.size / 2}
-						cx={current.x}
-						cy={current.y}
+						r={brush.size / 2*pixelRatio}
+						cx={current.x*pixelRatio}
+						cy={current.y*pixelRatio}
 						fill="#fffa"
 						stroke="#0005"
 						stroke-width="1px"
@@ -381,9 +402,9 @@
 					<circle
 						class:hidden={outside}
 						vector-effect="non-scaling-stroke"
-						r={(brush.size / 2) * brush.hardness}
-						cx={current.x}
-						cy={current.y}
+						r={(brush.size / 2) * brush.hardness*pixelRatio}
+						cx={current.x*pixelRatio}
+						cy={current.y*pixelRatio}
 						fill="#fffa"
 					/>
 				</g>
@@ -579,5 +600,10 @@
 		display: grid;
 		grid-template-columns: auto 2em;
 		gap: 0.5em;
+	}
+
+	.size-error {
+		outline: 2px solid #ffaaaa;
+		color: #aa0000;
 	}
 </style>

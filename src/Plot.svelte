@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher } from "svelte";
 
+	const pixelRatio = 20
 	export let size;
 
 	let element;
@@ -22,7 +23,14 @@
 		const y =
 			((clientY - rect.top) / rect.height) * viewBox.height + viewBox.y;
 
-		return { x, y };
+
+		svgPoint.x = clientX;
+		svgPoint.y = clientY;
+		const svgGlobal = svgPoint.matrixTransform(
+			element.getScreenCTM().inverse(),
+		);
+
+		return { x: svgGlobal.x/pixelRatio, y: svgGlobal.y/pixelRatio };
 	}
 
 	const dispatch = createEventDispatcher();
@@ -66,12 +74,18 @@
 	bind:this={element}
 	role="presentation"
 	class="image-array"
-	viewBox="0 0 {size.x} {size.y}"
+	viewBox="0 0 {size.x*pixelRatio} {size.y*pixelRatio}"
 	width={size.x}
 	height={size.y}
 	preserveAspectRatio="xMidYMid meet"
->
-	<slot></slot>
+>	
+<svg
+	width={size.x*pixelRatio}
+	height={size.y*pixelRatio}
+	viewBox="0 0 {size.x} {size.y}">
+		<slot></slot>
+
+</svg>
 </svg>
 
 <style>
@@ -83,7 +97,7 @@
 		height: auto;
 		border: 1px solid white;
 		display: block;
-		background: gray;
+		background: #00ffff77;
 		touch-action: none;
 	}
 </style>

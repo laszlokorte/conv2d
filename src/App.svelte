@@ -288,9 +288,9 @@
 				kernel: {
 					size: { x: 3, y: 3 },
 					values: [
+						[null, null, null],
 						[1, 1, 1],
 						[null, 1, null],
-						[null, null, null],
 					]
 				},
 				paddingType: "zero",
@@ -1152,7 +1152,7 @@
 					Input Image ({inputImage.size.x}&times;{inputImage.size.y})
 				</h2>
 				<Canvas
-					minSize={10}
+					minSize={3}
 					examples={imageExamples}
 					feedback={filteredImage}
 					bind:range={inputRange}
@@ -1471,7 +1471,15 @@
 					Filtered Image ({filteredImage.size.x}&times;{filteredImage
 						.size.y})
 				</h2>
-				<div class="figure-with-legend">
+					{#if filteredImage.size.x < 1 || filteredImage.size.x < 1}
+
+					<div class="size-error">
+						<strong>Kernel does not fit into the image.</strong>
+						<br>
+						The kernel must not be larger than the image.
+					</div>
+					{:else}
+					<div class="figure-with-legend">
 					<Plot size={filteredImage.size} on:point={focusOutput}>
 						<g pointer-events="none">
 							{#each filteredImage.values as row, y}
@@ -1622,6 +1630,8 @@
 					><input type="checkbox" bind:checked={clipOutput} /> Clip output
 					to range 0.0 to 1.0</label
 				>
+					{/if}
+				
 			</div>
 		</div>
 	</div>
@@ -1805,9 +1815,18 @@
 		display: none;
 	}
 
-	.invalid {
-		outline: 3px solid #ff8888;
-		background: #ffcccc;
+
+	.size-error {
+		background: #ffeeee;
 		color: #aa0000;
+		max-width: 20em;
+		max-height: 24em;
+		width: 100%;
+		min-width: 20em;
+		height: auto;
+		border: 1px solid white;
+		display: block;
+		padding: 1em;
+		text-align: center;
 	}
 </style>
